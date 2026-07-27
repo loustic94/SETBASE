@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demande d'achat - Gestion SET</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem; color: #333; background-color: #f9f9f9; }
+        .form-group { margin-bottom: 1.25rem; }
+        label { display: block; font-weight: bold; margin-bottom: 0.5rem; }
+        input, textarea { width: 100%; padding: 0.6rem; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 10pt; }
+        button { padding: 0.75rem 1.5rem; background-color: #f1b000; color: #000; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 11pt; }
+        button:hover { background-color: #d99e00; }
+        #message { margin-top: 1rem; font-weight: bold; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <h2>Nouvelle demande - Besoins Urgents!</h2>
+    
+    <form id="purchaseForm">
+        <div class="form-group">
+            <label for="atelier">Atelier ou Cercle Projet</label>
+            <input type="text" id="atelier" placeholder="Ex: Informatique, Jardin..." required>
+        </div>
+
+        <div class="form-group">
+            <label for="quiDemande">Votre adresse Gmail (Qui demande ?)</label>
+            <input type="email" id="quiDemande" placeholder="votre.nom@gmail.com" required>
+        </div>
+
+        <div class="form-group">
+            <label for="quoi">Quoi (Résumé de l'objet)</label>
+            <input type="text" id="quoi" placeholder="Ex: Licence logiciel, Outils..." required>
+        </div>
+
+        <div class="form-group">
+            <label for="questionDemande">Question / Description de la demande</label>
+            <textarea id="questionDemande" rows="4" placeholder="Détaillez votre besoin ici..." required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="montant">Montant si demande d'achat/remboursement/investissement (€)</label>
+            <input type="number" step="0.01" id="montant" required>
+        </div>
+
+        <div class="form-group">
+            <label for="lienDocument">Lien vers document explicatif / Suivi de projet / Facture d'achat</label>
+            <input type="url" id="lienDocument" placeholder="https://drive.google.com/...">
+        </div>
+
+        <button type="submit">Envoyer la demande</button>
+    </form>
+
+    <div id="message"></div>
+
+   <script>
+        document.getElementById('purchaseForm').addEventListener('submit', async function(e) {
+            e.preventDefault(); // Empêche le rechargement de la page
+
+            // 1. Récupération des données du formulaire
+            const atelier = document.getElementById('atelier').value;
+            const quiDemande = document.getElementById('quiDemande').value;
+            const quoi = document.getElementById('quoi').value;
+            const questionDemande = document.getElementById('questionDemande').value;
+            const montant = parseFloat(document.getElementById('montant').value);
+            const lienDocument = document.getElementById('lienDocument').value;
+
+            // 2. Formatage des données en "Form Data" (évite le blocage CORS de Zapier)
+            const formData = new URLSearchParams();
+            formData.append("Atelier", atelier);
+            formData.append("Qui demande ? (Identifiez-vous avec l'adresse gmail pour la réception de la validation)", quiDemande);
+            formData.append("Quoi", quoi);
+            formData.append("Question/Demande", questionDemande);
+            formData.append("Montant si demande d'achat/remboursement/investissement", montant);
+            formData.append("Lien vers document explicatif/Suivi de projet/facture d'achat", lienDocument);
+
+            // URL de votre Webhook Zapier
+            const WEBHOOK_URL = 'https://hooks.zapier.com/hooks/catch/5669844/4o5k41w/';
+
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerText = "Envoi en cours...";
+            messageDiv.style.color = "orange";
+
+            // 3. Envoi de la requête modifiée
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    body: formData, // On envoie le formulaire au lieu du JSON brut
+                    headers: {
+                        'Accept': 'application/json'
+                        // Surtout PAS de 'Content-Type': 'application/json' ici !
+                    },
+                    mode: 'cors'
+                });
+
+                if (response.ok) {
+                    messageDiv.innerText = "✅ Votre demande a bien été enregistrée et transmise aux valideurs !";
+                    messageDiv.style.color = "green";
+                    document.getElementById('purchaseForm').reset(); // Vide le formulaire
+                } else {
+                    messageDiv.innerText = "❌ Une erreur est survenue lors de la transmission.";
+                    messageDiv.style.color = "red";
+                }
+            } catch (error) {
+                console.error("Erreur réseau :", error);
+                messageDiv.innerText = "❌ Impossible de joindre le serveur de validation.";
+                messageDiv.style.color = "red";
+            }
+        });
+    </script>
+</body>
+</html>
