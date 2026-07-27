@@ -9,9 +9,12 @@
         .form-group { margin-bottom: 1.25rem; }
         label { display: block; font-weight: bold; margin-bottom: 0.5rem; }
         input, textarea { width: 100%; padding: 0.6rem; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 10pt; }
+        /* Style pour les champs désactivés */
+        input:disabled, textarea:disabled { background-color: #eee; cursor: not-allowed; opacity: 0.6; }
+        .info-choix { font-size: 0.85rem; color: #666; font-style: italic; margin-bottom: 0.5rem; }
         button { padding: 0.75rem 1.5rem; background-color: #f1b000; color: #000; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 11pt; }
         button:hover { background-color: #d99e00; }
-        #message { margin-top: 1rem; font-weight: bold; text-align: center; }
+        #message { margin-top: 1rem; font-weight: bold; text-align: center; min-height: 1.2em; }
     </style>
 </head>
 <body>
@@ -19,10 +22,20 @@
     <h2>Nouvelle demande - Besoins Urgents!</h2>
     
     <form id="purchaseForm">
+        
+        <p class="info-choix">Veuillez renseigner l'Atelier OU le Cercle Projet (remplissez l'un des deux) :</p>
+        
         <div class="form-group">
-            <label for="atelier">Atelier ou Cercle Projet</label>
-            <input type="text" id="atelier" placeholder="Ex: Informatique, Jardin..." required>
+            <label for="atelier">Atelier</label>
+            <input type="text" id="atelier" placeholder="Ex: Informatique, Jardin...">
         </div>
+
+        <div class="form-group">
+            <label for="cercleProjet">ou bien Cercle Projet</label>
+            <input type="text" id="cercleProjet" placeholder="Ex: Transition numérique, Énergie...">
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #ddd; margin: 1.5rem 0;">
 
         <div class="form-group">
             <label for="quiDemande">Votre adresse Gmail (Qui demande ?)</label>
@@ -40,64 +53,92 @@
         </div>
 
         <div class="form-group">
-            <label for="montant">Montant si demande d'achat/remboursement/investissement (€)</label>
-            <input type="number" step="0.01" id="montant" required>
+            <label for="montant">Montant estimé (€)</label>
+            <input type="number" step="0.01" id="montant" placeholder="0.00" required>
         </div>
 
         <div class="form-group">
-            <label for="lienDocument">Lien vers document explicatif / Suivi de projet / Facture d'achat</label>
+            <label for="lienDocument">Lien vers document explicatif / Suivi / Facture</label>
             <input type="url" id="lienDocument" placeholder="https://drive.google.com/...">
         </div>
 
-        <button type="submit">Envoyer la demande</button>
+        <button type="submit" id="submitBtn">Envoyer la demande</button>
     </form>
 
     <div id="message"></div>
 
-   <script>
-        document.getElementById('purchaseForm').addEventListener('submit', async function(e) {
-            e.preventDefault(); // Empêche le rechargement de la page
+    <script>
+        const form = document.getElementById('purchaseForm');
+        const atelierInput = document.getElementById('atelier');
+        const cercleProjetInput = document.getElementById('cercleProjet');
+        const messageDiv = document.getElementById('message');
 
-            // 1. Récupération des données du formulaire
-            const atelier = document.getElementById('atelier').value;
-            const quiDemande = document.getElementById('quiDemande').value;
-            const quoi = document.getElementById('quoi').value;
-            const questionDemande = document.getElementById('questionDemande').value;
-            const montant = parseFloat(document.getElementById('montant').value);
-            const lienDocument = document.getElementById('lienDocument').value;
+        // --- LOGIQUE D'EXCLUSION MUTUELLE ---
+        
+        // Fonction pour gérer l'état des champs
+        function toggleInputs() {
+            if (atelierInput.value.trim() !== "") {
+                cercleProjetInput.disabled = true;
+                cercleProjetInput.placeholder = "Désactivé (Atelier rempli)";
+            } else if (cercleProjetInput.value.trim() !== "") {
+                atelierInput.disabled = true;
+                atelierInput.placeholder = "Désactivé (Cercle rempli)";
+            } else {
+                // Si les deux sont vides, on réactive tout
+                atelierInput.disabled = false;
+                cercleProjetInput.disabled = false;
+                atelierInput.placeholder = "Ex: Informatique, Jardin...";
+                cercleProjetInput.placeholder = "Ex: Transition numérique, Énergie...";
+            }
+        }
 
-            // 2. Formatage des données en "Form Data" (évite le blocage CORS de Zapier)
+        atelierInput.addEventListener('input', toggleInputs);
+        cercleProjetInput.addEventListener('input', toggleInputs);
+
+        // --- GESTION DE LA SOUMISSION ---
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // 1. Validation de sécurité : au moins l'un des deux doit être rempli
+            if (atelierInput.value.trim() === "" && cercleProjetInput.value.trim() === "") {
+                messageDiv.innerText = "⚠️ Veuillez renseigner soit un Atelier, soit un Cercle Projet.";
+                messageDiv.style.color = "red";
+                return;
+            }
+
+            // 2. Préparation des données pour Zapier (Format URLSearchParams)
             const formData = new URLSearchParams();
-            formData.append("Atelier", atelier);
-            formData.append("Qui demande ? (Identifiez-vous avec l'adresse gmail pour la réception de la validation)", quiDemande);
-            formData.append("Quoi", quoi);
-            formData.append("Question/Demande", questionDemande);
-            formData.append("Montant si demande d'achat/remboursement/investissement", montant);
-            formData.append("Lien vers document explicatif/Suivi de projet/facture d'achat", lienDocument);
+            formData.append("Atelier", atelierInput.value.trim());
+            formData.append("ou bien Cercle Projet", cercleProjetInput.value.trim());
+            formData.append("Qui demande ? (Identifiez-vous avec l'adresse gmail pour la réception de la validation)", document.getElementById('quiDemande').value);
+            formData.append("Quoi", document.getElementById('quoi').value);
+            formData.append("Question/Demande", document.getElementById('questionDemande').value);
+            formData.append("Montant si demande d'achat/remboursement/investissement", document.getElementById('montant').value);
+            formData.append("Lien vers document explicatif/Suivi de projet/facture d'achat", document.getElementById('lienDocument').value);
 
-            // URL de votre Webhook Zapier
+            // URL du Webhook Zapier
             const WEBHOOK_URL = 'https://hooks.zapier.com/hooks/catch/5669844/4o5k41w/';
 
-            const messageDiv = document.getElementById('message');
             messageDiv.innerText = "Envoi en cours...";
             messageDiv.style.color = "orange";
 
-            // 3. Envoi de la requête modifiée
             try {
                 const response = await fetch(WEBHOOK_URL, {
                     method: 'POST',
-                    body: formData, // On envoie le formulaire au lieu du JSON brut
-                    headers: {
-                        'Accept': 'application/json'
-                        // Surtout PAS de 'Content-Type': 'application/json' ici !
-                    },
+                    body: formData,
+                    headers: { 'Accept': 'application/json' },
                     mode: 'cors'
                 });
 
                 if (response.ok) {
-                    messageDiv.innerText = "✅ Votre demande a bien été enregistrée et transmise aux valideurs !";
+                    messageDiv.innerText = "✅ Votre demande a bien été enregistrée !";
                     messageDiv.style.color = "green";
-                    document.getElementById('purchaseForm').reset(); // Vide le formulaire
+                    
+                    // Reset du formulaire
+                    form.reset();
+                    // Forcer la réactivation des champs après le reset
+                    toggleInputs(); 
                 } else {
                     messageDiv.innerText = "❌ Une erreur est survenue lors de la transmission.";
                     messageDiv.style.color = "red";
@@ -108,6 +149,9 @@
                 messageDiv.style.color = "red";
             }
         });
+    </script>
+</body>
+</html>
     </script>
 </body>
 </html>
