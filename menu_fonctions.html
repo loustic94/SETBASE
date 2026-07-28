@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu des Fonctions - SETBASE</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: var(--dark-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        #search {
+            width: 100%;
+            max-width: 600px;
+            padding: 12px 20px;
+            font-size: 1em;
+            border: 2px solid #ddd;
+            border-radius: var(--border-radius);
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #search:focus {
+            border-color: var(--secondary-color);
+        }
+
+        .category {
+            margin-bottom: 30px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+        }
+
+        .category-header {
+            background: var(--primary-color);
+            color: white;
+            padding: 15px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s;
+        }
+
+        .category-header:hover {
+            background: var(--secondary-color);
+        }
+
+        .category-header h2 {
+            font-size: 1.3em;
+        }
+
+        .category-header .toggle-icon {
+            font-size: 1.2em;
+            transition: transform 0.3s;
+        }
+
+        .category-header.collapsed .toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        .category-content {
+            padding: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .category-content.collapsed {
+            display: none;
+        }
+
+        .file-section {
+            margin-bottom: 25px;
+        }
+
+        .file-section h3 {
+            background: var(--light-color);
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            color: var(--primary-color);
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .functions-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .functions-table th {
+            background: var(--light-color);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .functions-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            vertical-align: top;
+        }
+
+        .functions-table tr:hover {
+            background: #f9f9f9;
+        }
+
+        .function-name {
+            font-weight: 600;
+            color: var(--secondary-color);
+            font-family: 'Courier New', monospace;
+        }
+
+        .function-description {
+            color: #555;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .tag-python {
+            background: #3572A5;
+            color: white;
+        }
+
+        .tag-js {
+            background: #f1e05a;
+            color: #333;
+        }
+
+        .tag-api {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .tag-util {
+            background: #9b59b6;
+            color: white;
+        }
+
+        .tag-gestion {
+            background: #27ae60;
+            color: white;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            text-align: center;
+            margin: 10px;
+            min-width: 200px;
+            flex: 1;
+        }
+
+        .stat-card h3 {
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #777;
+            font-style: italic;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #777;
+            font-size: 0.9em;
+            border-top: 1px solid #eee;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .stats {
+                flex-direction: column;
+            }
+
+            .stat-card {
+                margin: 5px;
+            }
+
+            .functions-table {
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 Menu des Fonctions - SETBASE</h1>
+            <p>Répertoire des fonctions disponibles dans les fichiers Python et HTML/JS</p>
+        </header>
+
+        <div class="stats">
+            <div class="stat-card">
+                <h3>Fichiers Analysés</h3>
+                <div class="stat-value" id="total-files">7</div>
+            </div>
+            <div class="stat-card">
+                <h3>Fonctions Totales</h3>
+                <div class="stat-value" id="total-functions">92</div>
+            </div>
+            <div class="stat-card">
+                <h3>Fonctions Python</h3>
+                <div class="stat-value" id="python-functions">6</div>
+            </div>
+            <div class="stat-card">
+                <h3>Fonctions JavaScript</h3>
+                <div class="stat-value" id="js-functions">86</div>
+            </div>
+        </div>
+
+        <div class="search-container">
+            <input type="text" id="search" placeholder="🔍 Rechercher une fonction, un fichier ou une description...">
+        </div>
+
+        <!-- Catégorie: Backend Python -->
+        <div class="category">
+            <div class="category-header" onclick="toggleCategory('python')">
+                <h2>🐍 Backend Python</h2>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="category-content" id="python-content">
+                <div class="file-section">
+                    <h3>📄 Update_adhésions_statut.py</h3>
+                    <p class="function-description">Script de mise à jour en masse des statuts des adhésions dans Baserow.</p>
+                    <table class="functions-table">
+                        <thead>
+                            <tr>
+                                <th>Fonction</th>
+                                <th>Description</th>
+                                <th>Tags</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="function-name">request_get(url, params)</td>
+                                <td class="function-description">Effectue une requête GET vers l'API Baserow avec gestion d'erreurs.</td>
+                                <td><span class="tag tag-python">Python</span><span class="tag tag-api">API</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">request_patch(url, payload)</td>
+                                <td class="function-description">Effectue une requête PATCH pour mettre à jour des données dans Baserow.</td>
+                                <td><span class="tag tag-python">Python</span><span class="tag tag-api">API</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">get_members_with_valid_rglt()</td>
+                                <td class="function-description">Récupère la liste des membres éligibles (dont le champ Type membre–Rglt ≠ "Non Réglés!").</td>
+                                <td><span class="tag tag-python">Python</span><span class="tag tag-gestion">Gestion</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">get_inscriptions_for_member(member_id)</td>
+                                <td class="function-description">Récupère les IDs des inscriptions liées à un membre donné.</td>
+                                <td><span class="tag tag-python">Python</span><span class="tag tag-gestion">Gestion</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">update_inscription_status(row_id)</td>
+                                <td class="function-description">Met à jour le champ Statut d'une inscription dans la table INSCRIPTIONS.</td>
+                                <td><span class="tag tag-python">Python</span><span class="tag tag-gestion">Gestion</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">main()</td>
+                                <td class="function-description">Fonction principale qui orchestré la mise à jour des statuts pour tous les membres éligibles.</td>
+                                <td><span class="tag tag-python">Python</span><span class="tag tag-gestion">Gestion</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Catégorie: API Baserow -->
+        <div class="category">
+            <div class="category-header" onclick="toggleCategory('api')">
+                <h2>🌐 Fonctions API Baserow</h2>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="category-content" id="api-content">
+                <div class="file-section">
+                    <h3>📄 Disponibles dans tous les fichiers HTML</h3>
+                    <table class="functions-table">
+                        <thead>
+                            <tr>
+                                <th>Fonction</th>
+                                <th>Description</th>
+                                <th>Fichiers</th>
+                                <th>Tags</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="function-name">baserowFetch(tableId, queryString, options)</td>
+                                <td class="function-description">Récupère des données depuis une table Baserow via une requête GET.</td>
+                                <td>index_baserow.html, ajout_ateliers_baserow.html, seances_baserow.html, desinscription_ateliers_baserow.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-api">API</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">baserowFetchAll(tableId, queryString)</td>
+                                <td class="function-description">Récupère toutes les lignes d'une table (avec pagination).</td>
+                                <td>ajout_ateliers_baserow.html, seances_baserow.html, desinscription_ateliers_baserow.html, seances.html, seances_v0.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-api">API</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">baserowFetchRow(tableId, rowId, options)</td>
+                                <td class="function-description">Récupère une ligne spécifique depuis une table Baserow.</td>
+                                <td>index_baserow.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-api">API</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">baserowPatchRow(tableId, rowId, body)</td>
+                                <td class="function-description">Met à jour une ligne spécifique dans Baserow via PATCH.</td>
+                                <td>desinscription_ateliers_baserow.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-api">API</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Catégorie: Gestion des Membres -->
+        <div class="category">
+            <div class="category-header" onclick="toggleCategory('membres')">
+                <h2>👥 Gestion des Membres</h2>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="category-content" id="membres-content">
+                <div class="file-section">
+                    <h3>📄 Fonctions de recherche et gestion</h3>
+                    <table class="functions-table">
+                        <thead>
+                            <tr>
+                                <th>Fonction</th>
+                                <th>Description</th>
+                                <th>Fichiers</th>
+                                <th>Tags</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="function-name">chercherMembre()</td>
+                                <td class="function-description">Recherche un membre dans la base de données Baserow.</td>
+                                <td>index_baserow.html, ajout_ateliers_baserow.html, seances_baserow.html, seances.html, seances_v0.html, desinscription_ateliers_baserow.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-gestion">Gestion</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Catégorie: Gestion des Ateliers -->
+        <div class="category">
+            <div class="category-header" onclick="toggleCategory('ateliers')">
+                <h2>🎨 Gestion des Ateliers</h2>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="category-content" id="ateliers-content">
+                <div class="file-section">
+                    <h3>📄 index_baserow.html</h3>
+                    <table class="functions-table">
+                        <thead>
+                            <tr>
+                                <th>Fonction</th>
+                                <th>Description</th>
+                                <th>Tags</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="function-name">chargerAteliers()</td>
+                                <td class="function-description">Charge la liste des ateliers disponibles depuis Baserow.</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-gestion">Gestion</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">afficherAteliers()</td>
+                                <td class="function-description">Affiche les ateliers dans l'interface utilisateur.</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-gestion">Gestion</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">toggleAtelier(id, cb)</td>
+                                <td class="function-description">Active/désactive un atelier dans l'interface.</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-util">Utilitaire</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="file-section">
+                    <h3>📄 ajout_ateliers_baserow.html</h3>
+                    <table class="functions-table">
+                        <thead>
+                            <tr>
+                                <th>Fonction</th>
+                                <th>Description</th>
+                                <th>Tags</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="function-name">chargerAteliers()</td>
+                                <td class="function-description">Charge la liste des ateliers disponibles.</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-gestion">Gestion</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">afficherAteliers()</td>
+                                <td class="function-description">Affiche les ateliers dans l'interface.</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-gestion">Gestion</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">toggleAtelier(id, cb)</td>
+                                <td class="function-description">Active/désactive un atelier.</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-util">Utilitaire</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">soumettreNouveauxAteliers()</td>
+                                <td class="function-description">Soumet les nouveaux ateliers à Baserow.</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-gestion">Gestion</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Catégorie: Gestion des Séances -->
+        <div class="category">
+            <div class="category-header" onclick="toggleCategory('seances')">
+                <h2>📅 Gestion des Séances</h2>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="category-content" id="seances-content">
+                <div class="file-section">
+                    <h3>📄 seances_baserow.html, seances.html, seances_v0.html</h3>
+                    <table class="functions-table">
+                        <thead>
+                            <tr>
+                                <th>Fonction</th>
+                                <th>Description</th>
+                                <th>Tags</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="function-name">chargerSeances()</td>
+                                <td class="function-description">Charge la liste des séances disponibles.</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-gestion">Gestion</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">afficherSeances(seances)</td>
+                                <td class="function-description">Affiche les séances dans l'interface.</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-gestion">Gestion</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">toggleSeance(id, cb)</td>
+                                <td class="function-description">Active/désactive une séance.</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-util">Utilitaire</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">construireFiltres(seances)</td>
+                                <td class="function-description">Construit des filtres pour les séances.</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-util">Utilitaire</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">filtrer(atelier, btn)</td>
+                                <td class="function-description">Filtre les séances par atelier.</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-util">Utilitaire</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">soumettreInscriptions()</td>
+                                <td class="function-description">Soumet les inscriptions à Baserow.</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-gestion">Gestion</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Catégorie: Gestion des Inscriptions -->
+        <div class="category">
+            <div class="category-header" onclick="toggleCategory('inscriptions')">
+                <h2>📝 Gestion des Inscriptions</h2>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="category-content" id="inscriptions-content">
+                <div class="file-section">
+                    <h3>📄 Fonctions communes</h3>
+                    <table class="functions-table">
+                        <thead>
+                            <tr>
+                                <th>Fonction</th>
+                                <th>Description</th>
+                                <th>Fichiers</th>
+                                <th>Tags</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="function-name">chargerInscriptionsExistantes()</td>
+                                <td class="function-description">Charge les inscriptions existantes pour un membre.</td>
+                                <td>ajout_ateliers_baserow.html, seances_baserow.html, seances.html, seances_v0.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-gestion">Gestion</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">chargerAteliersInscrits()</td>
+                                <td class="function-description">Charge les ateliers inscrits pour un membre.</td>
+                                <td>seances_baserow.html, seances.html, seances_v0.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-gestion">Gestion</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">chargerInscriptionsActives()</td>
+                                <td class="function-description">Charge les inscriptions actives pour un membre.</td>
+                                <td>desinscription_ateliers_baserow.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-gestion">Gestion</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">afficherInscriptions()</td>
+                                <td class="function-description">Affiche les inscriptions dans l'interface.</td>
+                                <td>desinscription_ateliers_baserow.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-gestion">Gestion</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">toggleInscription(id, cb)</td>
+                                <td class="function-description">Active/désactive une inscription.</td>
+                                <td>desinscription_ateliers_baserow.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-util">Utilitaire</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">soumettreInscriptions()</td>
+                                <td class="function-description">Soumet les inscriptions à Baserow.</td>
+                                <td>seances_baserow.html, seances.html, seances_v0.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-gestion">Gestion</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">soumettreDesinscriptions()</td>
+                                <td class="function-description">Soumet les désinscriptions à Baserow.</td>
+                                <td>desinscription_ateliers_baserow.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-gestion">Gestion</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">soumettreFormulaire()</td>
+                                <td class="function-description">Soumet les données du formulaire (ex: inscription à un atelier).</td>
+                                <td>index_baserow.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-gestion">Gestion</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Catégorie: Utilitaires -->
+        <div class="category">
+            <div class="category-header" onclick="toggleCategory('utilitaires')">
+                <h2>🔧 Fonctions Utilitaires</h2>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="category-content" id="utilitaires-content">
+                <div class="file-section">
+                    <h3>📄 Fonctions de formatage et extraction</h3>
+                    <table class="functions-table">
+                        <thead>
+                            <tr>
+                                <th>Fonction</th>
+                                <th>Description</th>
+                                <th>Fichiers</th>
+                                <th>Tags</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="function-name">formaterDate(iso)</td>
+                                <td class="function-description">Formate une date au format ISO en format lisible.</td>
+                                <td>seances_baserow.html, seances.html, seances_v0.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-util">Utilitaire</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">formaterHeure(iso)</td>
+                                <td class="function-description">Formate une heure au format ISO en format lisible.</td>
+                                <td>seances_baserow.html, seances.html, seances_v0.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-util">Utilitaire</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">idsDeLiaison(champ)</td>
+                                <td class="function-description">Extrait les IDs de liaison d'un champ de type link_row.</td>
+                                <td>seances_baserow.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-util">Utilitaire</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">valeurChoix(champ)</td>
+                                <td class="function-description">Extrait la valeur d'un champ de choix.</td>
+                                <td>seances_baserow.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-util">Utilitaire</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">valeurLookup(champ)</td>
+                                <td class="function-description">Extrait la valeur d'un champ de type lookup.</td>
+                                <td>seances_baserow.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-util">Utilitaire</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">bVal(v)</td>
+                                <td class="function-description">Extrait la valeur brute d'un champ.</td>
+                                <td>seances.html, seances_v0.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-util">Utilitaire</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">bIds(v)</td>
+                                <td class="function-description">Extrait les IDs d'un champ de type link_row.</td>
+                                <td>seances.html, seances_v0.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-util">Utilitaire</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="file-section">
+                    <h3>📄 Fonctions d'affichage de messages</h3>
+                    <table class="functions-table">
+                        <thead>
+                            <tr>
+                                <th>Fonction</th>
+                                <th>Description</th>
+                                <th>Fichiers</th>
+                                <th>Tags</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="function-name">afficherStatus(id, type, html)</td>
+                                <td class="function-description">Affiche un message de statut (succès/erreur).</td>
+                                <td>seances_baserow.html, seances.html, seances_v0.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-util">Utilitaire</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">cacherStatus(id)</td>
+                                <td class="function-description">Cache un message de statut.</td>
+                                <td>seances_baserow.html, seances.html, seances_v0.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-util">Utilitaire</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">afficherMsg(id, type, html)</td>
+                                <td class="function-description">Affiche un message de statut.</td>
+                                <td>ajout_ateliers_baserow.html, desinscription_ateliers_baserow.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-util">Utilitaire</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">cacherMsg(id)</td>
+                                <td class="function-description">Cache un message de statut.</td>
+                                <td>ajout_ateliers_baserow.html, desinscription_ateliers_baserow.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-util">Utilitaire</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">afficherMessage(type, html)</td>
+                                <td class="function-description">Affiche un message de statut (succès/erreur) à l'utilisateur.</td>
+                                <td>index_baserow.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-util">Utilitaire</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="file-section">
+                    <h3>📄 Fonctions de navigation</h3>
+                    <table class="functions-table">
+                        <thead>
+                            <tr>
+                                <th>Fonction</th>
+                                <th>Description</th>
+                                <th>Fichiers</th>
+                                <th>Tags</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="function-name">retourEtape1()</td>
+                                <td class="function-description">Retourne à l'étape précédente du formulaire.</td>
+                                <td>ajout_ateliers_baserow.html, seances_baserow.html, seances.html, seances_v0.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-util">Utilitaire</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">reinitialiser()</td>
+                                <td class="function-description">Réinitialise les données du formulaire.</td>
+                                <td>ajout_ateliers_baserow.html, desinscription_ateliers_baserow.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-util">Utilitaire</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">reinitialiserFormulaire()</td>
+                                <td class="function-description">Réinitialise le formulaire.</td>
+                                <td>index_baserow.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-util">Utilitaire</span></td>
+                            </tr>
+                            <tr>
+                                <td class="function-name">toggleInputs()</td>
+                                <td class="function-description">Active/désactive des champs de formulaire.</td>
+                                <td>depense_achat_baserow.html</td>
+                                <td><span class="tag tag-js">JS</span><span class="tag tag-util">Utilitaire</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>📅 Généré automatiquement à partir des fichiers du répertoire SETBASE | Dernière mise à jour : <span id="last-updated"></span></p>
+        </footer>
+    </div>
+
+    <script>
+        // Mise à jour de la date
+        document.getElementById('last-updated').textContent = new Date().toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        // Fonction pour basculer l'affichage des catégories
+        function toggleCategory(categoryId) {
+            const header = event.currentTarget;
+            const content = document.getElementById(categoryId + '-content');
+            
+            header.classList.toggle('collapsed');
+            content.classList.toggle('collapsed');
+        }
+
+        // Fonction de recherche
+        document.getElementById('search').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const allRows = document.querySelectorAll('.functions-table tbody tr');
+            let hasResults = false;
+
+            allRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                    hasResults = true;
+                    // Mettre en évidence les correspondances
+                    const cells = row.querySelectorAll('td');
+                    cells.forEach(cell => {
+                        const originalText = cell.textContent;
+                        const regex = new RegExp(searchTerm, 'gi');
+                        cell.innerHTML = originalText.replace(regex, match => `<span style="background: yellow;">${match}</span>`);
+                    });
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Afficher un message si aucun résultat
+            const noResultsMessage = document.querySelector('.no-results');
+            if (!hasResults && searchTerm.length > 0) {
+                if (!noResultsMessage) {
+                    const container = document.querySelector('.container');
+                    const newMessage = document.createElement('div');
+                    newMessage.className = 'no-results';
+                    newMessage.textContent = 'Aucun résultat trouvé pour "' + searchTerm + '"';
+                    container.insertBefore(newMessage, document.querySelector('footer'));
+                }
+            } else if (noResultsMessage) {
+                noResultsMessage.remove();
+            }
+        });
+
+        // Réinitialiser la recherche lors du clic sur la croix (si l'input le permet)
+        document.getElementById('search').addEventListener('search', function() {
+            const allRows = document.querySelectorAll('.functions-table tbody tr');
+            allRows.forEach(row => {
+                row.style.display = '';
+                const cells = row.querySelectorAll('td');
+                cells.forEach(cell => {
+                    cell.innerHTML = cell.textContent; // Retirer le surlignage
+                });
+            });
+            const noResultsMessage = document.querySelector('.no-results');
+            if (noResultsMessage) {
+                noResultsMessage.remove();
+            }
+        });
+    </script>
+</body>
+</html>
