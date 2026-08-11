@@ -665,8 +665,8 @@ function afficherSeances(seances) {
     const atelierVal     = bVal(s['Nom_Atelier']);
     const placesLimitees = s['Places_Limitées'] === true;
     const placesMax      = s['Places_Max'] || 0;
-    // Champ formule Séance_Complète : chaîne "🔴 COMPLET" ou "✅ Places dispo"
-    const seanceComplete = bVal(s['Séance_Complète']) || '';
+    // Champ formule Séance_complète : chaîne "🔴 COMPLET" ou "✅ Places dispo"
+    const seanceComplete = bVal(s['Séance_complète']) || '';
     const complet         = seanceComplete.includes('COMPLET');
     const dejaInscrit    = inscriptionsExistantes.has(s.id);
     const titre     = s['Titre séance'] || atelierVal || 'Séance';
@@ -797,8 +797,8 @@ async function soumettreInscriptions() {
       const atelierVal = bVal(f['Nom_Atelier']);
       const titreSeance = f['Titre séance'] || atelierVal || 'Séance';
 
-      // ── Vérification via champ Séance_Complète (calculé par Baserow) ──
-      const seanceComplete = bVal(f['Séance_Complète']) || '';
+      // ── Vérification via champ Séance_complète (calculé par Baserow) ──
+      const seanceComplete = bVal(f['Séance_complète']) || '';
       if (seanceComplete.includes('COMPLET')) {
         erreurs.push(`❌ <strong>${titreSeance}</strong> — séance complète, inscription impossible.`);
         progressBar.style.width = Math.round(100 * (i + 1) / total) + '%';
