@@ -150,7 +150,7 @@
       if (!res.ok) throw new Error('Atelier introuvable (' + res.status + ')');
       const atelier = await res.json();
 
-      bannerEl.textContent = `Atelier : ${atelier['Atelier']}`;
+      bannerEl.textContent = `Atelier : ${atelier['Nom_atelier']}`;
       if (nomPrerempli) document.getElementById('nom').value = nomPrerempli;
       formEl.classList.remove('hidden');
     } catch (err) {
