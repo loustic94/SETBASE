@@ -74,8 +74,29 @@
     background: var(--accent-light);
   }
   .ql-container.ql-snow { border: none; font-family: inherit; font-size: 0.95rem; }
-  #editor { min-height: 140px; }
-  .ql-editor.ql-blank::before { color: #9aa79f; font-style: normal; resize: vertical; overflow: auto;}
+ #editor-wrapper {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  resize: vertical;      /* la poignée apparaît ici, sur le bloc entier */
+  height: 220px;          /* hauteur de départ, modifiable en glissant */
+  min-height: 160px;
+}
+.ql-toolbar.ql-snow {
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: var(--accent-light);
+  flex: 0 0 auto;         /* la barre d'outils garde sa taille */
+}
+.ql-container.ql-snow {
+  border: none;
+  font-family: inherit;
+  font-size: 0.95rem;
+  flex: 1 1 auto;         /* l'éditeur prend tout l'espace restant */
+  overflow-y: auto;
+}
 
   button {
     margin-top: 24px;
@@ -105,7 +126,7 @@
 
 <div class="card">
   <h1>Diffuser un message à mon atelier</h1>
-  <p class="subtitle">Le message sera envoyé en copie cachée à tous les membres inscrits. Toute réponse vous reviendra directement.</p>
+  <p class="subtitle">Le message sera créé en brouillon pour être envoyé en copie cachée à tous les membres inscrits. Toute réponse vous reviendra directement.</p>
 
   <div id="atelier-banner" class="atelier-banner">Chargement de l'atelier…</div>
 
