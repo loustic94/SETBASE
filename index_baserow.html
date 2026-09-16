@@ -334,7 +334,8 @@ async function chargerAteliers() {
   try {
     // Tri : Airtable utilise sort[0][field]=...&sort[0][direction]=asc
     // Baserow utilise un simple order_by=NomDuChamp (ou -NomDuChamp pour desc)
-    const data = await baserowFetch(CONFIG.TABLE_ATELIERS, 'order_by=Nom_Atelier');
+    // Ajout du filtre : ne récupère que les ateliers dont Statut = coché (true)
+    const data = await baserowFetch(CONFIG.TABLE_ATELIERS, 'order_by=Nom_Atelier&filter__Statut__boolean=true');
     ateliersDisponibles = (data.results || []).map(r => ({
       id:  r.id,
       nom: r['Nom_Atelier'] || r['Name'] || '(sans nom)'
