@@ -110,7 +110,7 @@
 // était déjà "aplatie" (data.NomDuChamp), sans le niveau .fields en plus.
 // C'est LE changement structurel qui traverse tout le script ci-dessous.
 const CONFIG = {
-  API_TOKEN: 'BV3Q7F4q8OVDqFFz4IFQMWieqaMei3cX',   // Jeton de base de données Baserow (Paramètres > Jetons API)
+  API_TOKEN: 'VOTRE_TOKEN_BASEROW',   // Jeton de base de données Baserow (Paramètres > Jetons API)
                                        // Lecture sur Besoins Urgents!/Valideurs achats/Votes achats/MEMBRES,
                                        // écriture sur Votes achats (et Besoins Urgents! si rôle Payeur activé)
   BASE_URL: 'https://api.baserow.io', // ou l'URL de votre instance auto-hébergée
@@ -126,10 +126,12 @@ const CONFIG = {
   // Baserow. On le remplace par un test plus simple mais équivalent :
   // une demande est "ouverte" tant que le Collège Central n'a pas statué -
   // comme un =SI(ESTVIDE(...);"ouvert";"clos") plutôt qu'une formule imbriquée.
-  // On référence ce champ par son ID (8869139) plutôt que par son nom, car son
-  // nom contient parenthèses et slash, ce qui complique l'écriture des filtres.
-  CHAMP_STATUT_DEMANDE_ID: 8869139, // "Réponses Collège Central (Ne pas supprimer ou modifier le contenu)"
-  CHAMP_DATE_DEMANDE_ID: 8869131,   // "Date de la demande" (pour trier chronologiquement)
+  // Avec user_field_names=true, Baserow attend le NOM du champ dans les
+  // filtres et le tri (pas "field_<id>") - on construit les URL avec
+  // URLSearchParams pour que les accents/parenthèses soient encodés
+  // automatiquement, sans avoir à s'en soucier.
+  CHAMP_STATUT_DEMANDE: 'Réponses Collège Central (Ne pas supprimer ou modifier le contenu)',
+  CHAMP_DATE_DEMANDE: 'Date de la demande', // pour trier chronologiquement
 
   // Champs liés dans Votes achats (identiques en nom à Airtable)
   CHAMP_LIEN_DEMANDE: 'Demandes_achats',
@@ -162,7 +164,7 @@ const CONFIG = {
   CHAMP_MONTANT_REGLE: 'Montant réglé',
   CHAMP_DATE_REGLEMENT: 'Réglé le :',
   CHAMP_TYPE_REGLEMENT: 'TypeReglement',
-  OPTIONS_TYPE_REGLEMENT: ['Virement', 'Espèces', 'Chèque', 'CB', 'Autre...'],
+  OPTIONS_TYPE_REGLEMENT: ['Virement', 'Espèces', 'Chèque', 'CB', 'Autres'], // options exactes du champ Baserow
   CHAMP_CLOTURE: 'Clotûre après paiement',
   CHAMP_MEMBRE_DEMANDEUR: 'Membre demandeur', // champ lien vers MEMBRES
   CHAMP_EMAIL_MEMBRE: 'Email'
@@ -187,8 +189,13 @@ let votesParDemande = {};       // demandeId -> [{decision, commentaire, codeVal
 // Analogie : comme parcourir plusieurs feuilles d'un classeur Excel une par
 // une jusqu'à ce qu'il n'y en ait plus, plutôt que de supposer que tout tient
 // sur une seule page. Baserow pagine par défaut (100 lignes/page).
-async function baserowFetchAll(tableId, extraParams = '') {
-  let url = `${API_BASE}/${tableId}/?user_field_names=true${extraParams}`;
+async function baserowFetchAll(tableId, extraParams = {}) {
+  // URLSearchParams encode automatiquement les accents, parenthèses et
+  // espaces des noms de champs - comme laisser Excel gérer lui-même
+  // l'échappement d'un caractère spécial dans une formule plutôt que de le
+  // faire à la main.
+  const usp = new URLSearchParams({ user_field_names: 'true', ...extraParams });
+  let url = `${API_BASE}/${tableId}/?${usp.toString()}`;
   let results = [];
   while (url) {
     const res = await fetch(url, { headers: HEADERS });
@@ -238,10 +245,12 @@ async function chargerValideur(id) {
 // 3. Récupérer les demandes encore ouvertes
 // ============================================
 async function chargerDemandesOuvertes() {
-  // Filtre "champ vide" sur l'ID du champ (plus robuste que le nom, qui
-  // contient des parenthèses et un slash) : comme filtrer une colonne sur
-  // "cellule vide" plutôt que de deviner l'intitulé exact de la colonne.
-  const params = `&filter__field_${CONFIG.CHAMP_STATUT_DEMANDE_ID}__empty=true&order_by=field_${CONFIG.CHAMP_DATE_DEMANDE_ID}`;
+  // Filtre "champ vide" par nom de champ : comme filtrer une colonne sur
+  // "cellule vide" (ESTVIDE) plutôt que de deviner un numéro de colonne.
+  const params = {
+    [`filter__${CONFIG.CHAMP_STATUT_DEMANDE}__empty`]: 'true',
+    order_by: CONFIG.CHAMP_DATE_DEMANDE
+  };
   const records = await baserowFetchAll(CONFIG.TABLE_DEMANDES, params);
   console.log('Demandes trouvées:', records.length, records);
   return records;
@@ -460,16 +469,14 @@ function escapeAttr(str) {
 // ============================================
 // 8. RÔLE PAYEUR - Demandes validées mais pas encore réglées
 // ============================================
-// ⚠️ N'ACTIVEZ PAS ce rôle avant d'avoir, dans Baserow :
-//   1. Ajouté l'option "Payeur" au champ "Status" de la table Valideurs achats
-//   2. Créé les 5 champs listés dans CONFIG (Montant réglé, Réglé le :,
-//      TypeReglement, Clotûre après paiement, Membre demandeur) dans Besoins Urgents!
-// Tant que ce n'est pas fait, aucun valideur n'aura le statut Payeur (vérifié :
-// les 5 valideurs actuels ont Status = vide), donc ce bloc ne se déclenche pas.
+// Les 5 champs de règlement existent désormais dans Besoins Urgents!. Il ne
+// reste qu'à ajouter l'option "Payeur" au champ "Status" de Valideurs achats
+// (et à l'affecter à un valideur) pour activer ce rôle.
 async function chargerDemandesARegler() {
-  const params =
-    `&filter__field_${CONFIG.CHAMP_STATUT_DEMANDE_ID}__not_empty=true` +
-    `&filter__${encodeURIComponent(CONFIG.CHAMP_MONTANT_REGLE)}__empty=true`;
+  const params = {
+    [`filter__${CONFIG.CHAMP_STATUT_DEMANDE}__not_empty`]: 'true',
+    [`filter__${CONFIG.CHAMP_MONTANT_REGLE}__empty`]: 'true'
+  };
   return baserowFetchAll(CONFIG.TABLE_DEMANDES, params);
 }
 
