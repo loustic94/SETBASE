@@ -591,8 +591,9 @@ async function chargerAteliersInscrits() {
       bIds(r['Atelier']).forEach(aid => ateliersInscrits.add(aid));
     }
   });
+    console.log('Ateliers actifs :', [...ateliersInscrits]);
 }
-  console.log('Ateliers actifs :', [...ateliersInscrits]);
+
 
 
 /* ── Chargement des inscriptions existantes ──── */
