@@ -592,12 +592,7 @@ async function chargerAteliersInscrits() {
     }
   });
   console.log('Ateliers actifs :', [...ateliersInscrits]);
-}
-    console.log(`✅ ${ateliersInscrits.size} atelier(s) actif(s) pour ce membre:`, [...ateliersInscrits]);
-  } catch(e) {
-    console.warn('Ateliers inscrits non chargés:', e.message);
-  }
-}
+
 
 /* ── Chargement des inscriptions existantes ──── */
 async function chargerInscriptionsExistantes() {
