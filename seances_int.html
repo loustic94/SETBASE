@@ -460,12 +460,15 @@ async function baserowFetch(pathOrUrl, options = {}) {
 // (équivalent du système "offset" d'Airtable, mais ici c'est "next" qui
 // contient l'URL complète de la page suivante).
 async function baserowFetchAll(tableId, extraQuery = '') {
-  let url = `/api/database/rows/table/${tableId}/?user_field_names=true&size=200${extraQuery}`;
+  let page = 1;
   let results = [];
-  while (url) {
-    const data = await baserowFetch(url);
+  while (true) {
+    const data = await baserowFetch(
+      `/api/database/rows/table/${tableId}/?user_field_names=true&size=200&page=${page}${extraQuery}`
+    );
     results = results.concat(data.results || []);
-    url = data.next || null; // "next" est déjà une URL absolue
+    if (!data.next) break;   // plus de page suivante : on s'arrête
+    page++;
   }
   return results;
 }
