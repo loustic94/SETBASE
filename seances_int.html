@@ -579,24 +579,21 @@ async function chercherMembre() {
 // qui sont connus pour être capricieux avec user_field_names=true.
 async function chargerAteliersInscrits() {
   ateliersInscrits.clear();
-  const rows = await baserowFetchAll(CONFIG.TABLE_INSCRIPTIONS); // plus de try/catch muet
+  const rows = await baserowFetchAll(CONFIG.TABLE_INSCRIPTIONS);
 
-  console.log('Champs disponibles :', Object.keys(rows[0] || {}));
+  // Liste blanche : seuls ces statuts donnent accès aux séances
+  const statutsValides = ['Actif', 'Ajout'];
 
-  const duMembre = rows.filter(r => bIds(r['Membre']).includes(membreActuel.id));
-  console.log(`Lignes INSCRIPTIONS pour le membre ${membreActuel.id} :`, duMembre.length);
-  console.log('Statuts trouvés :', [...new Set(duMembre.map(r => bVal(r['Statut'])))]);
-
-  // Plus robuste : on EXCLUT les statuts inactifs au lieu de lister les valides
-  const statutsExclus = ['Inactif', 'Annulé', 'Terminé', 'Archivé']; // à adapter
-  duMembre.forEach(r => {
-    if (!statutsExclus.includes(bVal(r['Statut']))) {
+  rows.forEach(r => {
+    const membres = bIds(r['Membre']);
+    const statut  = bVal(r['Statut']);
+    if (membres.includes(membreActuel.id) && statutsValides.includes(statut)) {
       bIds(r['Atelier']).forEach(aid => ateliersInscrits.add(aid));
     }
   });
-    console.log('Ateliers actifs :', [...ateliersInscrits]);
-}
 
+  console.log(`✅ ${ateliersInscrits.size} atelier(s) actif(s) :`, [...ateliersInscrits]);
+}
 
 
 /* ── Chargement des inscriptions existantes ──── */
