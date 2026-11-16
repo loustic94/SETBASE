@@ -155,7 +155,7 @@
     API_URL: 'https://api.baserow.io/api/database/rows/table/',
     TABLE_DEMANDES_ENVOI: 1160720,
     TABLE_ATELIERS: 1010821,
-    STATUT_INITIAL: 'En attente' // doit correspondre exactement à l'option du champ Statut
+    STATUT_INITIAL: 'En attente', // doit correspondre exactement à l'option du champ Statut
     STATUT_ENVOI: 'A envoyer',      // exactement l'option du champ Statut
     RETOUR_URL: 'https://set-animateurs.baserow.site/'
   };
@@ -251,13 +251,14 @@ async function attendreResultat(rowId) {
       return;
     }
 
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Envoi en cours…';
-    resultEl.innerHTML = '';
+
 
 const objet = document.getElementById('objet').value.trim();
 if (!confirm("Envoyer ce message à tous les membres inscrits à l'atelier ? Cette action est définitive.")) return;
 
+submitBtn.disabled = true;
+submitBtn.textContent = 'Envoi en cours…';
+resultEl.innerHTML = '';
 const payload = {
   'Nom': document.getElementById('nom').value,
   'Objet': objet,
