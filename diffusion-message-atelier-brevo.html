@@ -126,20 +126,22 @@
 
 <div class="card">
   <h1>Diffuser un message à mon atelier</h1>
-  <p class="subtitle">Le message sera créé en brouillon pour être envoyé en copie cachée à tous les membres inscrits. Toute réponse vous reviendra directement.</p>
+  <p class="subtitle">Le message sera envoyé par e-mail à tous les membres inscrits à l'atelier. Toute réponse vous reviendra directement.</p>
 
   <div id="atelier-banner" class="atelier-banner">Chargement de l'atelier…</div>
 
   <form id="form" class="hidden">
-    <label for="nom">Votre nom (animateur : Objet)</label>
+    <label for="nom">Votre nom</label>
     <input type="text" id="nom" required>
+    <label for="objet">Objet du message</label>
+    <input type="text" id="objet" required maxlength="150">
 
     <label for="editor">Message à diffuser</label>
     <div id="editor-wrapper">
       <div id="editor"></div>
     </div>
 
-    <button type="submit" id="submit-btn">Envoyer la demande</button>
+   <button type="submit" id="submit-btn">Envoyer le message</button>
   </form>
 
   <div id="result"></div>
@@ -154,6 +156,8 @@
     TABLE_DEMANDES_ENVOI: 1160720,
     TABLE_ATELIERS: 1010821,
     STATUT_INITIAL: 'En attente' // doit correspondre exactement à l'option du champ Statut
+    STATUT_ENVOI: 'A envoyer',      // exactement l'option du champ Statut
+    RETOUR_URL: 'https://set-animateurs.baserow.site/'
   };
 
   const params = new URLSearchParams(window.location.search);
@@ -188,7 +192,28 @@
       'Content-Type': 'application/json'
     };
   }
+function htmlPourEmail(html) {
+  return html
+    .replace(/<span class="ql-ui"[^>]*><\/span>/g, '')
+    .replace(/([a-zA-Z-]+)="([^"]*)"/g, "$1='$2'")  // guillemets d'attributs -> apostrophes
+    .replace(/"/g, '&quot;')                          // guillemets restants (dans le texte)
+    .replace(/\\/g, '&#92;')
+    .replace(/[\r\n]+/g, '');
+}
+const pause = (ms) => new Promise(r => setTimeout(r, ms));
 
+async function attendreResultat(rowId) {
+  for (let i = 0; i < 15; i++) {                       // 15 x 2 s = 30 s maximum
+    await pause(2000);
+    const res = await fetch(`${CONFIG.API_URL}${CONFIG.TABLE_DEMANDES_ENVOI}/${rowId}/?user_field_names=true`, { headers: headers() });
+    if (!res.ok) continue;
+    const row = await res.json();
+    const statut = row['Statut'] && row['Statut'].value;
+    if (statut === 'Envoyé') return { ok: true };
+    if (statut === 'En attente' && row['Erreur']) return { ok: false, erreur: row['Erreur'] };
+  }
+  return { ok: null };
+}
   async function init() {
     if (!atelierId) {
       bannerEl.textContent = "Lien invalide : identifiant d'atelier manquant. Contactez l'administrateur du portail.";
@@ -230,33 +255,45 @@
     submitBtn.textContent = 'Envoi en cours…';
     resultEl.innerHTML = '';
 
-    const payload = {
-      'Nom': document.getElementById('nom').value,
-      'Corps du mail': quill.root.innerHTML,   // version HTML mise en forme
-      'Corps du mail (texte)': texteBrut,       // version texte brut, en secours
-      'Atelier': [parseInt(atelierId, 10)],
-      'Statut': CONFIG.STATUT_INITIAL
-    };
+const objet = document.getElementById('objet').value.trim();
+if (!confirm("Envoyer ce message à tous les membres inscrits à l'atelier ? Cette action est définitive.")) return;
 
-    try {
-      const res = await fetch(`${CONFIG.API_URL}${CONFIG.TABLE_DEMANDES_ENVOI}/?user_field_names=true`, {
-        method: 'POST',
-        headers: headers(),
-        body: JSON.stringify(payload)
-      });
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(errText);
-      }
-      resultEl.innerHTML = '<div class="message ok">Votre demande a bien été enregistrée. Le message sera diffusé sous peu.</div>';
-      quill.setContents([]);
-      document.getElementById('nom').value = nomPrerempli || '';
-      formEl.classList.add('hidden');
-    } catch (err) {
-      resultEl.innerHTML = '<div class="message err">Erreur lors de l\'envoi : ' + err.message + '</div>';
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Envoyer la demande';
-    }
+const payload = {
+  'Nom': document.getElementById('nom').value,
+  'Objet': objet,
+  'Corps_html': htmlPourEmail(quill.getSemanticHTML()),
+  'Corps du mail (texte)': texteBrut,
+  'Atelier': [parseInt(atelierId, 10)],
+  'Statut': CONFIG.STATUT_INITIAL
+};
+
+try {
+  submitBtn.disabled = true; submitBtn.textContent = 'Envoi en cours…';
+  const res = await fetch(`${CONFIG.API_URL}${CONFIG.TABLE_DEMANDES_ENVOI}/?user_field_names=true`,
+    { method: 'POST', headers: headers(), body: JSON.stringify(payload) });
+  if (!res.ok) throw new Error(await res.text());
+  const row = await res.json();
+
+  // 2e appel : la MODIFICATION du statut déclenche le workflow d'envoi
+  const res2 = await fetch(`${CONFIG.API_URL}${CONFIG.TABLE_DEMANDES_ENVOI}/${row.id}/?user_field_names=true`,
+    { method: 'PATCH', headers: headers(), body: JSON.stringify({ 'Statut': CONFIG.STATUT_ENVOI }) });
+  if (!res2.ok) throw new Error(await res2.text());
+
+  formEl.classList.add('hidden');
+  resultEl.innerHTML = '<div class="message ok">Message enregistré, envoi en cours…</div>';
+  const r = await attendreResultat(row.id);
+  const lien = `<p><a href="${CONFIG.RETOUR_URL}">Retour à l'application</a></p>`;
+
+  if (r.ok === false) {
+    resultEl.innerHTML = `<div class="message err">L'envoi a échoué : ${r.erreur}</div>${lien}`;
+  } else {
+    resultEl.innerHTML = `<div class="message ok">${r.ok ? 'Message envoyé à vos membres.' : "Message enregistré, l'envoi suit son cours."}</div>${lien}`;
+    setTimeout(() => { window.location.href = CONFIG.RETOUR_URL; }, 2500);
+  }
+} catch (err) {
+  resultEl.innerHTML = '<div class="message err">Erreur lors de l\'envoi : ' + err.message + '</div>';
+  submitBtn.disabled = false; submitBtn.textContent = 'Envoyer le message';
+}
   });
 
   init();
