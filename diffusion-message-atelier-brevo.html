@@ -157,7 +157,9 @@
     TABLE_ATELIERS: 1010821,
     STATUT_INITIAL: 'En attente', // doit correspondre exactement à l'option du champ Statut
     STATUT_ENVOI: 'A envoyer',      // exactement l'option du champ Statut
-    RETOUR_URL: 'https://set-animateurs.baserow.site/'
+   
+    RETOUR_BASE: 'https://set-animateurs.baserow.site/ateliers/',
+    RETOUR_URL: 'https://set-animateurs.baserow.site/'   // repli si aucune adresse
   };
 
   const params = new URLSearchParams(window.location.search);
@@ -221,7 +223,7 @@ async function attendreResultat(rowId) {
       bannerEl.style.background = '#fbeceA';
       return;
     }
-
+    retourUrl = construireRetour(emailParam || premierEmail(atelier['Email_Animateur']));
     try {
       const res = await fetch(`${CONFIG.API_URL}${CONFIG.TABLE_ATELIERS}/${atelierId}/?user_field_names=true`, {
         headers: headers()
@@ -283,20 +285,29 @@ try {
   formEl.classList.add('hidden');
   resultEl.innerHTML = '<div class="message ok">Message enregistré, envoi en cours…</div>';
   const r = await attendreResultat(row.id);
-  const lien = `<p><a href="${CONFIG.RETOUR_URL}">Retour à l'application</a></p>`;
+  const lien = `<p><a href="${retourUrl}">Retour à l'application</a></p>`;
 
   if (r.ok === false) {
     resultEl.innerHTML = `<div class="message err">L'envoi a échoué : ${r.erreur}</div>${lien}`;
   } else {
     resultEl.innerHTML = `<div class="message ok">${r.ok ? 'Message envoyé à vos membres.' : "Message enregistré, l'envoi suit son cours."}</div>${lien}`;
-    setTimeout(() => { window.location.href = CONFIG.RETOUR_URL; }, 2500);
+    setTimeout(() => { window.location.href = retourUrl; }, 2500);
   }
 } catch (err) {
   resultEl.innerHTML = '<div class="message err">Erreur lors de l\'envoi : ' + err.message + '</div>';
   submitBtn.disabled = false; submitBtn.textContent = 'Envoyer le message';
 }
   });
+const emailParam = (params.get('email') || '').replace(/ /g, '+').trim();  // un "+" arrive comme une espace
+let retourUrl = CONFIG.RETOUR_URL;
 
+function premierEmail(v) {                      // gère texte simple ou liste
+  if (Array.isArray(v)) v = v.map(x => (x && x.value) ? x.value : x).join(',');
+  return String(v || '').split(/[,;\s]+/).find(s => s.includes('@')) || '';
+}
+function construireRetour(email) {
+  return email ? CONFIG.RETOUR_BASE + encodeURIComponent(email) : CONFIG.RETOUR_URL;
+}
   init();
 </script>
 
