@@ -225,14 +225,14 @@ async function attendreResultat(rowId) {
       bannerEl.style.background = '#fbeceA';
       return;
     }
-    retourUrl = construireRetour(emailParam || premierEmail(atelier['Email_Animateur']));
+
     try {
       const res = await fetch(`${CONFIG.API_URL}${CONFIG.TABLE_ATELIERS}/${atelierId}/?user_field_names=true`, {
         headers: headers()
       });
       if (!res.ok) throw new Error('Atelier introuvable (' + res.status + ')');
       const atelier = await res.json();
-
+      retourUrl = construireRetour(emailParam || premierEmail(atelier['Email_Animateur']));
       bannerEl.textContent = `Atelier : ${atelier['Nom_Atelier']}`;
       if (nomPrerempli) document.getElementById('nom').value = nomPrerempli;
       formEl.classList.remove('hidden');
@@ -300,7 +300,7 @@ try {
   submitBtn.disabled = false; submitBtn.textContent = 'Envoyer le message';
 }
   });
-const emailParam = (params.get('email') || '').replace(/ /g, '+').trim();  // un "+" arrive comme une espace
+
 let retourUrl = CONFIG.RETOUR_URL;
 
 function premierEmail(v) {                      // gère texte simple ou liste
