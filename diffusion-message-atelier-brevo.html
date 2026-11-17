@@ -170,6 +170,8 @@
   const formEl = document.getElementById('form');
   const resultEl = document.getElementById('result');
   const submitBtn = document.getElementById('submit-btn');
+  let emailParam = (params.get('email') || '').replace(/ /g, '+').trim();
+  if (!emailParam.includes('@')) emailParam = '';   // valeur inexploitable : on ignore
 
   // ---- Initialisation de l'éditeur riche ----
   // Barre d'outils volontairement réduite : gras/italique/souligné, listes, lien.
