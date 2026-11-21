@@ -145,6 +145,7 @@
   </form>
 
   <div id="result"></div>
+  <p style="margin-top:20px;font-size:.85rem"><a id="lien-retour" href="https://set-animateurs.baserow.site/">← Retour à l'application</a></p>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
@@ -219,37 +220,36 @@ async function attendreResultat(rowId) {
   return { ok: null };
 }
   async function init() {
-    if (!atelierId) {
-      bannerEl.textContent = "Lien invalide : identifiant d'atelier manquant. Contactez l'administrateur du portail.";
-      bannerEl.style.color = 'var(--error)';
-      bannerEl.style.background = '#fbeceA';
-      return;
-    }
-      retourUrl = construireRetour(emailParam);
-      majLienRetour();
-    try {
-      const res = await fetch(`${CONFIG.API_URL}${CONFIG.TABLE_ATELIERS}/${atelierId}/?user_field_names=true`, {
-        headers: headers()
-      });
-      if (!res.ok) throw new Error('Atelier introuvable (' + res.status + ')');
-      const atelier = await res.json();
-      if (!atelier['Brevo_List_ID']) {
+  retourUrl = construireRetour(emailParam);
+  majLienRetour();
+
+  if (!atelierId) {
+    bannerEl.textContent = "Lien invalide : identifiant d'atelier manquant. Contactez l'administrateur du portail.";
+    bannerEl.style.color = 'var(--error)';
+    bannerEl.style.background = '#fbeceA';
+    return;
+  }
+  try {
+    const res = await fetch(`${CONFIG.API_URL}${CONFIG.TABLE_ATELIERS}/${atelierId}/?user_field_names=true`, { headers: headers() });
+    if (!res.ok) throw new Error('Atelier introuvable (' + res.status + ')');
+    const atelier = await res.json();
+
+    if (!atelier['Brevo_List_ID']) {
       bannerEl.textContent = "Cet atelier n'est pas encore relié à une liste de diffusion : l'envoi est impossible pour le moment. Contactez l'administrateur du portail.";
       bannerEl.style.color = 'var(--error)';
       bannerEl.style.background = '#fbeceA';
-  return;                                // le formulaire reste caché, rien n'est créé
-}
-      retourUrl = construireRetour(emailParam || premierEmail(atelier['Email_Animateur']));
-      bannerEl.textContent = `Atelier : ${atelier['Nom_Atelier']}`;
-      if (nomPrerempli) document.getElementById('nom').value = nomPrerempli;
-      formEl.classList.remove('hidden');
-    } catch (err) {
-      bannerEl.textContent = "Impossible de charger l'atelier : " + err.message;
-      bannerEl.style.color = 'var(--error)';
-      bannerEl.style.background = '#fbeceA';
+      return;                       // formulaire caché, rien n'est créé
     }
-  }
 
+    bannerEl.textContent = `Atelier : ${atelier['Nom_Atelier']}`;
+    if (nomPrerempli) document.getElementById('nom').value = nomPrerempli;
+    formEl.classList.remove('hidden');
+  } catch (err) {
+    bannerEl.textContent = "Impossible de charger l'atelier : " + err.message;
+    bannerEl.style.color = 'var(--error)';
+    bannerEl.style.background = '#fbeceA';
+  }
+}
   formEl.addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -316,6 +316,10 @@ function premierEmail(v) {                      // gère texte simple ou liste
 }
 function construireRetour(email) {
   return email ? CONFIG.RETOUR_BASE + encodeURIComponent(email) : CONFIG.RETOUR_URL;
+}
+function majLienRetour() {
+  const a = document.getElementById('lien-retour');
+  if (a) a.href = retourUrl;
 }
   init();
 </script>
