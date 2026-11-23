@@ -300,7 +300,11 @@ try {
     resultEl.innerHTML = `<div class="message err">L'envoi a échoué : ${r.erreur}</div>${lien}`;
   } else {
     resultEl.innerHTML = `<div class="message ok">${r.ok ? 'Message envoyé à vos membres.' : "Message enregistré, l'envoi suit son cours."}</div>${lien}`;
-    setTimeout(() => { window.location.href = retourUrl; }, 2500);
+ 
+    // remplace : setTimeout(() => { window.location.href = retourUrl; }, 2500);
+resultEl.innerHTML = `<div class="message ok">${r.ok ? 'Message envoyé à vos membres.' : "Message enregistré, l'envoi suit son cours."}</div>
+  <p>Vous pouvez fermer cet onglet et revenir à l'application.</p>
+  <p><button type="button" onclick="window.close()">Fermer cet onglet</button></p>`;
   }
 } catch (err) {
   resultEl.innerHTML = '<div class="message err">Erreur lors de l\'envoi : ' + err.message + '</div>';
